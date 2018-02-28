@@ -1,0 +1,11 @@
+﻿  core.c
+  descriptor.c
+  hotplug.c
+  io.c
+  poll_windows.c
+  strerror.c
+  sync.c
+  threads_windows.c
+  windows_nt_common.c
+  windows_winusb.c
+  libusb_static_2017.vcxproj -> C:\Users\tokol0sh\Source\Repos\libusb\msvc\..\Win32\Release\lib\libusb-1.0.lib
