@@ -17,6 +17,27 @@ struct odrive_packet_t {
 	short CRC16;
 };
 
+int send_to_odrive(libusb_device_handle* handle, unsigned char* packet, int* sent_bytes) {
+	libusb_bulk_transfer(handle,
+		(1 | LIBUSB_ENDPOINT_OUT),
+		packet,
+		ARRAY_SIZE(packet),
+		sent_bytes,
+		0);
+}
+
+int receive_from_odrive(libusb_device_handle* handle, unsigned char* packet, int max_bytes_to_receive, int* received_bytes, int timeout = 0) {
+	libusb_bulk_transfer(handle,
+		(1 | LIBUSB_ENDPOINT_IN),
+		packet,
+		max_bytes_to_receive,
+		received_bytes,
+		timeout);
+}
+
+
+
+
 odrive_packet_t remote_endpoint_operation(int endpoint_id, std::string payload, int ack, int length) {
 	odrive_packet_t packet;
 
@@ -36,9 +57,9 @@ odrive_packet_t remote_endpoint_operation(int endpoint_id, std::string payload, 
 	}
 
 	// Send the packet
-
+	send_to_odrive(handle, packet, sent_bytes);
 	// Immediatly wait for response from Odrive and check if ack (if we asked for one)
-	
+	receive_from_odrive(handle, packet, max_bytes_to_receive, received_bytes, timeout)
 	// return the response payload
 
 
