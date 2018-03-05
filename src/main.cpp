@@ -17,6 +17,8 @@ struct odrive_packet_t {
 	short CRC16;
 };
 
+
+
 int send_to_odrive(libusb_device_handle* handle, unsigned char* packet, int* sent_bytes) {
 	libusb_bulk_transfer(handle,
 		(1 | LIBUSB_ENDPOINT_OUT),
@@ -36,14 +38,16 @@ int receive_from_odrive(libusb_device_handle* handle, unsigned char* packet, int
 }
 
 
+unsigned char* serialise_odrive_packet(odrive_packet_t packet) {
+	return serialised_packet;
+}
 
-
-odrive_packet_t remote_endpoint_operation(int endpoint_id, std::string payload, int ack, int length) {
-	odrive_packet_t packet;
+odrive_packet_t odrive_endpoint_request(libusb_device_handle* handle, int endpoint_id, std::string payload, int ack, int length) {
+	static odrive_packet_t packet;
 
 	// Assemble the packet to send
 	if (ack) {
-		packet.endpoint_id |= 0x8000;
+		packet.endpoint_id = packet.endpoint_id |= 0x8000;
 	}
 	packet.sequence_number = (packet.sequence_number + 1) & 0x7fff;
 	packet.sequence_number |= 0x80;
@@ -57,9 +61,11 @@ odrive_packet_t remote_endpoint_operation(int endpoint_id, std::string payload, 
 	}
 
 	// Send the packet
-	send_to_odrive(handle, packet, sent_bytes);
+	send_to_odrive(handle, serialise_odrive_packet(packet), sent_bytes);
+
+
 	// Immediatly wait for response from Odrive and check if ack (if we asked for one)
-	receive_from_odrive(handle, packet, max_bytes_to_receive, received_bytes, timeout)
+	receive_from_odrive(handle, deserialise_odrive_packet(packet), max_bytes_to_receive, received_bytes, timeout);
 	// return the response payload
 
 
@@ -67,8 +73,6 @@ odrive_packet_t remote_endpoint_operation(int endpoint_id, std::string payload, 
 
 
 int main() {
-	printf("Hello world!\n");
-
 	libusb_context* ctx;
 	libusb_init(&ctx);
 	libusb_set_debug(ctx, 3);
