@@ -19,6 +19,7 @@ include_directories(3rd_party/Serial/include)
 
 
 include_directories(3rd_party/libusb-1.0.21/include)
+include_directories(3rd_party/nlohmann)
 
 
 add_executable(Odrive_USB src/main.cpp)
