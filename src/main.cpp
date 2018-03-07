@@ -13,6 +13,22 @@ using nlohmann::json;
 
 #define ARRAY_SIZE(x) (sizeof(x) / sizeof(*x))
 
+void parse_endpoints(json& j, std::map<std::string, int>& endpoints, std::string prefix = "") {
+	for (json& obj : j) {
+		std::string name = obj["name"];
+		std::string type = obj["type"];
+		int id = obj["id"];
+		//printf("id: %i\ttype: %s\n", id, type.c_str());
+
+		endpoints[prefix + name] = id;
+
+		if (obj.count("members")) {
+			json& members = obj["members"];
+			parse_endpoints(members, endpoints, prefix + name + ".");
+		}
+	}
+}
+
 
 int main() {
 
@@ -46,6 +62,11 @@ int main() {
 	std::cout << std::setw(10) << j << "\n\n";
 	printf("\n Received %i bytes!\n", total_received);
 
+	std::map<std::string, int> endpoints;
+
+	
+	parse_endpoints(j, endpoints);
+	
 
 	libusb_release_interface(handle, 1);
 	libusb_close(handle);
