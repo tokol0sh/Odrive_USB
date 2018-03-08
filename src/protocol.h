@@ -2,8 +2,10 @@
 #include <vector>
 #include <cstdint>
 #include "libusb-1.0\libusb.h"
+#include <json.hpp>
 
 typedef std::vector<uint8_t> serial_buffer;
+using nlohmann::json;
 
 
 // Templates for basic serialization and deserialization
@@ -12,7 +14,6 @@ void serialize(serial_buffer&, const T&);
 
 template <class T>
 void deserialize(serial_buffer::iterator&, T&);
-
 
 
 void serialize(serial_buffer& serial_buffer, const int& value) {
@@ -32,7 +33,6 @@ void serialize(serial_buffer& serial_buffer, const std::vector<uint8_t>& value) 
 	serial_buffer = value;
 
 }
-
 
 void deserialize(serial_buffer::iterator& it, short& value) {
 	value = *it++;
@@ -58,7 +58,6 @@ struct odrive_packet {
 	std::vector<uint8_t> payload;
 	short CRC16;
 };
-
 
 
 // Variadic template to allow multiple arguments
@@ -121,7 +120,6 @@ serial_buffer decode_odrive_packet(serial_buffer::iterator& it, short& seq_no, s
 }
 
 
-
 void send_to_odrive(libusb_device_handle* handle, std::vector<uint8_t>& packet, int* sent_bytes) {
 	libusb_bulk_transfer(handle,
 		(1 | LIBUSB_ENDPOINT_OUT),
@@ -141,8 +139,8 @@ void receive_from_odrive(libusb_device_handle* handle, unsigned char* packet, in
 }
 
 
-
-int odrive_endpoint_request(libusb_device_handle* handle, int endpoint_id, serial_buffer& received_payload, int count, int ack, int length) {
+// Endpoint request with std::vector<uint8_t> payload
+int odrive_endpoint_request(libusb_device_handle* handle, int endpoint_id, serial_buffer& received_payload, std::vector<uint8_t> payload, int ack, int length) {
 	serial_buffer send_buffer;
 	serial_buffer receive_buffer;
 	unsigned char receive_bytes[100] = { 0 };
@@ -157,13 +155,11 @@ int odrive_endpoint_request(libusb_device_handle* handle, int endpoint_id, seria
 	seq_no = (seq_no + 1) & 0x7fff;
 	seq_no |= 0x80;
 	// Send the packet
-	send_to_odrive(handle, create_odrive_packet(seq_no, endpoint_id | 0x8000, (short)64, (int)count), &sent_bytes);
+	send_to_odrive(handle, create_odrive_packet(seq_no, endpoint_id | 0x8000, (short)64, (std::vector<uint8_t>)payload), &sent_bytes);
 
 
 	// Immediatly wait for response from Odrive and check if ack (if we asked for one)
 	receive_from_odrive(handle, receive_bytes, max_bytes_to_receive, &received_bytes, timeout);
-
-	//printf("%s\n", receive_bytes);
 
 	for (i = 0; i < received_bytes; i++) {
 		receive_buffer.push_back(receive_bytes[i]);
@@ -175,3 +171,42 @@ int odrive_endpoint_request(libusb_device_handle* handle, int endpoint_id, seria
 	// return the response payload
 	return received_payload.size();
 }
+
+void get_odrive_json_interface(libusb_device_handle* handle, json& j) {
+	serial_buffer send_payload;
+	serial_buffer receive_payload;
+	serial_buffer received_json;
+
+	int received_bytes = 0;
+	int total_received = 0;
+
+	do {
+		serialize(send_payload, (int)total_received);
+		received_bytes = odrive_endpoint_request(handle, 0, receive_payload, send_payload, 1, 64);
+		send_payload.clear();
+		total_received += received_bytes;
+		for (uint8_t byte : receive_payload) {
+			received_json.push_back(byte);
+		}
+	} while (received_bytes > 0);
+	j = json::parse(received_json);
+	printf("Received %i bytes!\n", total_received);
+}
+
+void parse_endpoints(json& j, std::map<std::string, int>& endpoints, std::string prefix = "") {
+	for (json& obj : j) {
+		std::string name = obj["name"];
+		std::string type = obj["type"];
+		int id = obj["id"];
+		//printf("id: %i\ttype: %s\n", id, type.c_str());
+
+		endpoints[prefix + name] = id;
+
+		if (obj.count("members")) {
+			json& members = obj["members"];
+			parse_endpoints(members, endpoints, prefix + name + ".");
+		}
+	}
+}
+
+
