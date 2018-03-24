@@ -4,6 +4,7 @@ typedef std::vector<uint8_t> serial_buffer;
 using nlohmann::json;
 
 
+
 int Protocol::endpoint_request(int endpoint_id, serial_buffer& received_payload, std::vector<uint8_t> payload, int ack, int length) {
 	serial_buffer send_buffer;
 	serial_buffer receive_buffer;
@@ -42,7 +43,7 @@ int Protocol::endpoint_request(int endpoint_id, serial_buffer& received_payload,
 }
 
 
-void Protocol::get_json_interface(Endpoint& endpoints) {
+void Protocol::get_json_interface(json& j) {
 	serial_buffer send_payload;
 	serial_buffer receive_payload;
 	serial_buffer received_json;
@@ -61,5 +62,18 @@ void Protocol::get_json_interface(Endpoint& endpoints) {
 	} while (received_bytes > 0);
 	j = json::parse(received_json);
 	printf("Received %i bytes!\n", total_received);
-	parse_endpoints(endpoints, j);
+}
+
+void Protocol::get_float(int id, float& value) {
+	serial_buffer send_payload;
+	serial_buffer receive_payload;
+	endpoint_request(id, receive_payload, send_payload, 1, 4);
+	deserialize(receive_payload.begin(), value);
+
+}
+
+void Protocol::set_float(int id, float& value) {
+	serial_buffer send_payload;
+	serial_buffer receive_payload;
+	endpoint_request(id, receive_payload, send_payload, 1, 4);
 }

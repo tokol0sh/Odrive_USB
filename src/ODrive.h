@@ -4,7 +4,10 @@
 #include <map>
 #include "libusb-1.0\libusb.h"
 #include <json.hpp>
-#include "endpoint.h"
+
+
+#define VID     0x1209
+#define PID     0x0D32
 
 typedef std::vector<uint8_t> serial_buffer;
 using nlohmann::json;
@@ -12,14 +15,26 @@ using nlohmann::json;
 class Protocol {
 public:
 
-	Protocol(libusb_device_handle* handle) : handle(handle) {}
+	Protocol() {
+		libusb_init(&ctx);
+		handle = libusb_open_device_with_vid_pid(ctx, VID, PID);
+		int r = libusb_claim_interface(handle, 1);
+	}
+	~Protocol() {
+		libusb_release_interface(handle, 1);
+		libusb_close(handle);
+		libusb_exit(ctx);
+	}
 
 	int endpoint_request(int endpoint_id, serial_buffer& received_payload, std::vector<uint8_t> payload, int ack, int length);
-	void get_json_interface(Endpoint& endpoints);
+	void get_json_interface(json& j);
+	void Protocol::get_float(int id, float& value);
+	void Protocol::set_float(int id, float& value);
 
 private:
 
 	libusb_device_handle * handle;
+	libusb_context* ctx;
 	json j;
 
 	void send_to_odrive(libusb_device_handle* handle, std::vector<uint8_t>& packet, int* sent_bytes) {
@@ -164,22 +179,6 @@ private:
 			payload.push_back(*it++);
 		}
 		return payload;
-	}
-
-	void parse_endpoints(Endpoint& endpoints, json& j) {
-		for (json& obj : j) {
-			std::string name = obj["name"];
-			std::string type = obj["type"];
-			int id = obj["id"];
-			//printf("id: %i\tname: %s\ttype: %s\n", id, name.c_str(), type.c_str());
-
-			endpoints.add_child(name, type, id);
-
-			if (obj.count("members")) {
-				json& members = obj["members"];
-				parse_endpoints(endpoints[name], members);
-			}
-		}
 	}
 
 

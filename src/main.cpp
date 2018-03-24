@@ -9,65 +9,53 @@
 
 using nlohmann::json;
 
-#define VID     0x1209
-#define PID     0x0D32
+
 
 
 #define ARRAY_SIZE(x) (sizeof(x) / sizeof(*x))
 
+void populate_from_json(json& j, Endpoint& endpoints) {
+	for (json& obj : j) {
+		std::string name = obj["name"];
+		std::string type = obj["type"];
+		int id = obj["id"];
+		//printf("id: %i\tname: %s\ttype: %s\n", id, name.c_str(), type.c_str());
+
+		endpoints.add_child(name, type, id);
+
+		if (obj.count("members")) {
+			json& members = obj["members"];
+			populate_from_json(members, endpoints[name]);
+		}
+	}
+}
 
 int main() {
+	/*
 	libusb_context* ctx;
 	libusb_init(&ctx);
 	//libusb_set_debug(ctx, 3);
 	libusb_device_handle* handle;
 	handle = libusb_open_device_with_vid_pid(ctx, VID, PID);
 	int r = libusb_claim_interface(handle, 1);
+	*/
 	json j;
-	Endpoint root(0);
-	Protocol ODrive(handle);
+	Protocol ODrive;
+	Endpoint root(ODrive, 0);
+	ODrive.get_json_interface(j);
 
-
-	ODrive.get_json_interface(root);
-
+	populate_from_json(j, root);
 	Endpoint& motor0 = root["motor0"];
 	Endpoint& motor0_position = motor0["pos_setpoint"];
-	motor0_position = 20;
+	motor0_position = float(20.0);
 	float motor_position = motor0_position;
 
 
-
-
-	serial_buffer received_payload;
-	serial_buffer send_payload;
-	/*serialize(send_payload, (int)0);
-	while (1) {
-		ODrive.endpoint_request(1, received_payload, send_payload, 1, 4);
-		float value = 0;
-
-		serial_buffer::iterator it = received_payload.begin();
-		deserialize(it, value);
-		printf("Bus Voltage: %.5f\n", value);
-
-	}
-	odrive_endpoint_request(handle, 10, received_payload, send_payload, 1, 4);
-	int value1 = 0;
-
-	serial_buffer::iterator it1 = received_payload.begin();
-	deserialize(it1, value1);
-	printf("Motor 0 error code: %d\n", value1);
-	*/
-
-	//Endpoint root(0);
-	
-
-
-
-	
+	/*
 	libusb_release_interface(handle, 1);
 	libusb_close(handle);
 	libusb_exit(ctx);
-
+	*/
 	return 0;
 }
 
