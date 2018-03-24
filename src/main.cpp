@@ -2,7 +2,6 @@
 #include "libusb-1.0\libusb.h"
 #include <string>
 #include <vector>
-#include "protocol.h"
 #include <iterator>
 #include <json.hpp>
 #include "endpoint.h"
@@ -15,10 +14,6 @@ using nlohmann::json;
 
 
 #define ARRAY_SIZE(x) (sizeof(x) / sizeof(*x))
-
-
-
-
 
 
 int main() {
@@ -45,7 +40,7 @@ int main() {
 
 	serial_buffer received_payload;
 	serial_buffer send_payload;
-	serialize(send_payload, (int)0);
+	/*serialize(send_payload, (int)0);
 	while (1) {
 		ODrive.endpoint_request(1, received_payload, send_payload, 1, 4);
 		float value = 0;
@@ -61,10 +56,9 @@ int main() {
 	serial_buffer::iterator it1 = received_payload.begin();
 	deserialize(it1, value1);
 	printf("Motor 0 error code: %d\n", value1);
-
+	*/
 
 	//Endpoint root(0);
-	parse_endpoints2(j, root);
 	
 
 

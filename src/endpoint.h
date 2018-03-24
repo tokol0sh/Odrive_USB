@@ -4,8 +4,6 @@
 #include <vector>
 #include <map>
 #include <iterator>
-#include "protocol.h"
-#include "protocol.h"
 
 class Endpoint {
 public:
