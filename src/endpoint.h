@@ -4,11 +4,13 @@
 #include <vector>
 #include <map>
 #include <iterator>
+#include "protocol.h"
+#include "protocol.h"
 
 class Endpoint {
 public:
 
-	Endpoint(int id = -1, std::string type = std::string()) : id(id), type(type) {}
+	Endpoint(int id = -1, std::string type = std::string()) : id(id), type(type){}
 
 	Endpoint& add_child(const std::string& name, std::string type, int id) {
 		children[name] = Endpoint(id, type);
@@ -32,7 +34,21 @@ public:
 		if (!has_children() && is_valid()) {
 			if (type == "float") {
 				//odrive_set_value_float(id, value);
+				//odrive_endpoint_request(handle, 1, received_payload, send_payload, 1, 4);
 				printf("Set ID %i with float: %f", id, value);
+			}
+		}
+	}
+
+	operator float() const {
+		if (!has_children() && is_valid()) {
+			if (type == "float") {
+				//odrive_set_value_float(id, value);
+				//odrive_endpoint_request(handle, 1, received_payload, send_payload, 1, 4);
+				float value = 69.696969;
+				printf("got %.2f from ID %i\n", value, id);
+				return value;
+
 			}
 		}
 	}
@@ -42,6 +58,8 @@ public:
 	void operator=(const T& value) {
 		set(value);
 	}
+
+
 
 
 private:
