@@ -33,7 +33,7 @@ public:
 			if (type == "float") {
 				//odrive_set_value_float(id, value);
 				//odrive_endpoint_request(handle, 1, received_payload, send_payload, 1, 4);
-				printf("Set ID %i with float: %f", id, value);
+				printf("Set ID %i with float: %f\n", id, value);
 			}
 		}
 	}

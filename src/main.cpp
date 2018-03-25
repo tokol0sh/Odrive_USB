@@ -11,23 +11,7 @@ using nlohmann::json;
 
 #define ARRAY_SIZE(x) (sizeof(x) / sizeof(*x))
 
-/*
-void populate_from_json(json& j, Endpoint& endpoints) {
-	for (json& obj : j) {
-		std::string name = obj["name"];
-		std::string type = obj["type"];
-		int id = obj["id"];
-		//printf("id: %i\tname: %s\ttype: %s\n", id, name.c_str(), type.c_str());
 
-		endpoints.add_child(name, type, id);
-
-		if (obj.count("members")) {
-			json& members = obj["members"];
-			populate_from_json(members, endpoints[name]);
-		}
-	}
-}
-*/
 int main() {
 	/*
 	libusb_context* ctx;
@@ -37,18 +21,21 @@ int main() {
 	handle = libusb_open_device_with_vid_pid(ctx, VID, PID);
 	int r = libusb_claim_interface(handle, 1);
 	*/
-	json j;
 
 	Protocol ODrive;
 	Endpoint root(0);
 	root = ODrive.get_json_interface();
 
-	Endpoint& motor0 = root["motor0"];
-	Endpoint& motor0_position = motor0["pos_setpoint"];
 	Endpoint& bus_voltage = root["vbus_voltage"];
+	float voltage = bus_voltage;
+
+	Endpoint& motor0 = root["motor0"];
+	Endpoint& motor1 = root["motor1"];
+
+	Endpoint& motor0_position = motor0["pos_setpoint"];
 	motor0_position = float(20.0);
 	float motor_position = motor0_position;
-	float voltage = bus_voltage;
+	
 
 
 	/*
