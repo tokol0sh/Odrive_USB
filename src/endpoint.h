@@ -6,14 +6,15 @@
 #include <iterator>
 #include "ODrive.h"
 
+extern Protocol ODrive;
 
 class Endpoint {
 public:
-	Endpoint( Protocol& ODrive, int id = -1, std::string type = std::string()) : ODrive(ODrive), id(id), type(type){}
-	Endpoint(){}
+	Endpoint(int id = -1, std::string type = std::string()) : id(id), type(type){}
+
 
 	Endpoint& add_child(const std::string& name, std::string type, int id) {
-		children[name] = Endpoint(ODrive, id, type);
+		children[name] = Endpoint(id, type);
 		return children[name];
 	}
 
@@ -34,6 +35,7 @@ public:
 		if (!has_children() && is_valid()) {
 			if (type == "float") {
 				//odrive_set_value_float(id, value);
+				ODrive.set_float(id, value);
 				//odrive_endpoint_request(handle, 1, received_payload, send_payload, 1, 4);
 				printf("Set ID %i with float: %f\n", id, value);
 			}
@@ -56,6 +58,7 @@ public:
 				//odrive_set_value_float(id, value);
 				//odrive_endpoint_request(handle, 1, received_payload, send_payload, 1, 4);
 				float value = 69.696969;
+				ODrive.get_float(id, value);
 				printf("got %.2f from ID %i\n", value, id);
 				return value;
 
@@ -72,7 +75,6 @@ public:
 
 private:
 
-	Protocol ODrive;
 	int id;
 	std::string type;
 	std::map<std::string, Endpoint> children;

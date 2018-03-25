@@ -30,6 +30,8 @@ void populate_from_json(json& j, Endpoint& endpoints) {
 	}
 }
 
+Protocol ODrive;
+
 int main() {
 	/*
 	libusb_context* ctx;
@@ -40,15 +42,17 @@ int main() {
 	int r = libusb_claim_interface(handle, 1);
 	*/
 	json j;
-	Protocol ODrive;
-	Endpoint root(ODrive, 0);
+	//Protocol ODrive;
+	Endpoint root(0);
 	ODrive.get_json_interface(j);
 
 	populate_from_json(j, root);
 	Endpoint& motor0 = root["motor0"];
 	Endpoint& motor0_position = motor0["pos_setpoint"];
+	Endpoint& bus_voltage = root["vbus_voltage"];
 	motor0_position = float(20.0);
 	float motor_position = motor0_position;
+	float voltage = bus_voltage;
 
 
 	/*

@@ -77,3 +77,4 @@ void Protocol::set_float(int id, float& value) {
 	serial_buffer receive_payload;
 	endpoint_request(id, receive_payload, send_payload, 1, 4);
 }
+
