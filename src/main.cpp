@@ -4,30 +4,21 @@
 #include <vector>
 #include <iterator>
 #include <json.hpp>
-#include "endpoint.h"
 #include "ODrive.h"
+#include "endpoint.h"
 
 using nlohmann::json;
 
 #define ARRAY_SIZE(x) (sizeof(x) / sizeof(*x))
 
-
 int main() {
-	/*
-	libusb_context* ctx;
-	libusb_init(&ctx);
-	//libusb_set_debug(ctx, 3);
-	libusb_device_handle* handle;
-	handle = libusb_open_device_with_vid_pid(ctx, VID, PID);
-	int r = libusb_claim_interface(handle, 1);
-	*/
-
 	Protocol ODrive;
 	Endpoint root(0);
 	root = ODrive.get_json_interface();
 
 	Endpoint& bus_voltage = root["vbus_voltage"];
 	float voltage = bus_voltage;
+	printf("Bus voltage: %.2fV\n", voltage);
 
 	Endpoint& motor0 = root["motor0"];
 	Endpoint& motor1 = root["motor1"];

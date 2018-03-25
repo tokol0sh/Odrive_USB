@@ -83,7 +83,7 @@ Endpoint Protocol::get_json_interface() {
 	return root;
 }
 
-void Protocol::get_float(int id, float& value) {
+void Protocol::get(int id, float& value) {
 	serial_buffer send_payload;
 	serial_buffer receive_payload;
 	endpoint_request(id, receive_payload, send_payload, 1, 4);
@@ -91,9 +91,124 @@ void Protocol::get_float(int id, float& value) {
 
 }
 
-void Protocol::set_float(int id, float& value) {
+void Protocol::get(int id, int& value) {
 	serial_buffer send_payload;
 	serial_buffer receive_payload;
 	endpoint_request(id, receive_payload, send_payload, 1, 4);
+	deserialize(receive_payload.begin(), value);
+
 }
 
+void Protocol::set(int id, float& value) {
+	serial_buffer send_payload;
+	serial_buffer receive_payload;
+	serialize(send_payload, value);
+	endpoint_request(id, receive_payload, send_payload, 1, 4);
+}
+
+
+void Protocol::set(int id, int& value) {
+	serial_buffer send_payload;
+	serial_buffer receive_payload;
+	serialize(send_payload, value);
+	endpoint_request(id, receive_payload, send_payload, 1, 4);
+}
+
+void Protocol::send_to_odrive(libusb_device_handle* handle, std::vector<uint8_t>& packet, int* sent_bytes) {
+	libusb_bulk_transfer(handle,
+		(1 | LIBUSB_ENDPOINT_OUT),
+		packet.data(),
+		packet.size(),
+		sent_bytes,
+		0);
+}
+
+void Protocol::receive_from_odrive(libusb_device_handle* handle, unsigned char* packet, int max_bytes_to_receive, int* received_bytes, int timeout) {
+	libusb_bulk_transfer(handle,
+		(1 | LIBUSB_ENDPOINT_IN),
+		packet,
+		max_bytes_to_receive,
+		received_bytes,
+		timeout);
+}
+
+
+void Protocol::serialize(serial_buffer& serial_buffer, const int& value) {
+	serial_buffer.push_back((value >> 0) & 0xFF);
+	serial_buffer.push_back((value >> 8) & 0xFF);
+	serial_buffer.push_back((value >> 16) & 0xFF);
+	serial_buffer.push_back((value >> 24) & 0xFF);
+}
+
+void Protocol::serialize(serial_buffer& serial_buffer, const float& valuef) {
+	union {
+		float f;
+		int temp;
+	}u;
+	u.f = valuef;
+	int value = u.temp;
+	serial_buffer.push_back((value >> 0) & 0xFF);
+	serial_buffer.push_back((value >> 8) & 0xFF);
+	serial_buffer.push_back((value >> 16) & 0xFF);
+	serial_buffer.push_back((value >> 24) & 0xFF);
+}
+
+void Protocol::serialize(serial_buffer& serial_buffer, const short& value) {
+	serial_buffer.push_back((value >> 0) & 0xFF);
+	serial_buffer.push_back((value >> 8) & 0xFF);
+
+}
+
+void Protocol::serialize(serial_buffer& serial_buffer, const std::vector<uint8_t>& value) {
+	serial_buffer = value;
+
+}
+
+void Protocol::deserialize(serial_buffer::iterator& it, short& value) {
+	value = *it++;
+	value |= (*it++) << 8;
+}
+
+void Protocol::deserialize(serial_buffer::iterator& it, int& value) {
+	value = *it++;
+	value |= (*it++) << 8;
+	value |= (*it++) << 16;
+	value |= (*it++) << 24;
+}
+
+void Protocol::deserialize(serial_buffer::iterator& it, float& value) {
+	union {
+		float f;
+		int temp;
+	}u;
+	int test = 0;
+	test = *it++;
+	test |= (*it++) << 8;
+	test |= (*it++) << 16;
+	test |= (*it++) << 24;
+	u.temp = test;
+	value = u.f;
+}
+
+void Protocol::deserialize(serial_buffer::iterator& it, std::vector<uint8_t>& value) {
+	value.push_back(1);
+}
+
+void Protocol::serialize(serial_buffer& serial_buffer, const odrive_packet& odrive_packet) {
+	serialize(serial_buffer, odrive_packet.sequence_number, odrive_packet.endpoint_id, odrive_packet.payload_length, odrive_packet.payload, odrive_packet.CRC16);
+}
+
+void Protocol::deserialize(serial_buffer::iterator& it, odrive_packet& odrive_packet) {
+	deserialize(it, odrive_packet.sequence_number, odrive_packet.endpoint_id, odrive_packet.payload_length, odrive_packet.payload, odrive_packet.CRC16);
+}
+
+serial_buffer Protocol::decode_odrive_packet(serial_buffer::iterator& it, short& seq_no, serial_buffer& received_packet) {
+	serial_buffer payload;
+	deserialize(it, seq_no);
+
+	// add this to a template?
+	while (it != received_packet.end()) {
+		payload.push_back(*it++);
+	}
+	return payload;
+}

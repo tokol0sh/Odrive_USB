@@ -5,58 +5,28 @@
 #include <map>
 #include <iterator>
 
+
 class Endpoint {
 public:
 
 	Endpoint(int id = -1, std::string type = std::string()) : id(id), type(type){}
 
-	Endpoint& add_child(const std::string& name, std::string type, int id) {
-		children[name] = Endpoint(id, type);
-		return children[name];
-	}
+	Endpoint& add_child(const std::string& name, std::string type, int id);
 
-	Endpoint& operator[] (const std::string& name) {
-		return children[name];
-	}
+	Endpoint& operator[] (const std::string& name);
 
-	bool is_valid() const {
-		return id != -1;
-	}
+	bool is_valid() const;
 
-	bool has_children() const {
-		return !children.empty();
-	}
+	bool has_children() const;
 
+	void set(float value) const;
 
-	void set(float value) const {
-		if (!has_children() && is_valid()) {
-			if (type == "float") {
-				//odrive_set_value_float(id, value);
-				//odrive_endpoint_request(handle, 1, received_payload, send_payload, 1, 4);
-				printf("Set ID %i with float: %f\n", id, value);
-			}
-		}
-	}
-
-	operator float() const {
-		if (!has_children() && is_valid()) {
-			if (type == "float") {
-				//odrive_set_value_float(id, value);
-				//odrive_endpoint_request(handle, 1, received_payload, send_payload, 1, 4);
-				float value = 69.696969;
-				printf("got %.2f from ID %i\n", value, id);
-				return value;
-
-			}
-		}
-	}
+	operator float() const;
 
 	template <class T>
 	void operator=(const T& value) {
 		set(value);
 	}
-
-
 
 
 private:
