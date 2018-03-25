@@ -13,21 +13,24 @@ using nlohmann::json;
 
 int main() {
 	Protocol ODrive;
-	Endpoint root(0);
-	root = ODrive.get_json_interface();
-
-	Endpoint& bus_voltage = root["vbus_voltage"];
-	float voltage = bus_voltage;
-	printf("Bus voltage: %.2fV\n", voltage);
-
+	Endpoint root = ODrive.get_json_interface();
 	Endpoint& motor0 = root["motor0"];
+
+	while (1) {
+		float bus_voltage = root["vbus_voltage"];
+		int loop_counter = motor0["loop_counter"];
+	}
+	//printf("Bus voltage: %.2fV\n", voltage);
+
+	
+	int loop_counter = motor0["loop_counter"];
 	Endpoint& motor1 = root["motor1"];
 
-	Endpoint& motor0_position = motor0["pos_setpoint"];
-	motor0_position = float(20.0);
-	float motor_position = motor0_position;
-	
 
+	//Endpoint& motor0_position = motor0["pos_setpoint"];
+	//motor0_position = float(20.0);
+	//float motor_position = motor0_position;
+	
 
 	/*
 	libusb_release_interface(handle, 1);

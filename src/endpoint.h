@@ -5,11 +5,12 @@
 #include <map>
 #include <iterator>
 
+class Protocol;
 
 class Endpoint {
 public:
 
-	Endpoint(int id = -1, std::string type = std::string()) : id(id), type(type){}
+	Endpoint(Protocol* Odrive = NULL, int id = -1, std::string type = std::string()) : ODrive(Odrive), id(id), type(type){}
 
 	Endpoint& add_child(const std::string& name, std::string type, int id);
 
@@ -20,17 +21,25 @@ public:
 	bool has_children() const;
 
 	void set(float value) const;
+	void set(int value) const;
 
-	operator float() const;
+	float get_float() const;
+	int get_int() const;
 
 	template <class T>
 	void operator=(const T& value) {
 		set(value);
 	}
 
+	operator float() const;
+
+	//operator int() const;
+
+
+
 
 private:
-
+	Protocol* ODrive;
 	int id;
 	std::string type;
 	std::map<std::string, Endpoint> children;

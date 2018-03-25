@@ -31,10 +31,10 @@ public:
 
 	int endpoint_request(int endpoint_id, serial_buffer& received_payload, std::vector<uint8_t> payload, int ack, int length);
 	Endpoint get_json_interface();
-	void get(int id, float& value);
-	void get(int id, int& value);
-	void set(int id, float& value);
-	void set(int id, int& value);
+	void get_float(int id, float& value);
+	void get_int(int id, int& value);
+	void set_float(int id, float& value);
+	void set_int(int id, int& value);
 
 
 private:

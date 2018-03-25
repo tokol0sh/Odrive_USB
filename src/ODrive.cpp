@@ -63,7 +63,7 @@ Endpoint Protocol::get_json_interface() {
 	serial_buffer send_payload;
 	serial_buffer receive_payload;
 	serial_buffer received_json;
-	Endpoint root(0);
+	Endpoint root(this,0);
 
 	int received_bytes = 0;
 	int total_received = 0;
@@ -83,7 +83,7 @@ Endpoint Protocol::get_json_interface() {
 	return root;
 }
 
-void Protocol::get(int id, float& value) {
+void Protocol::get_float(int id, float& value) {
 	serial_buffer send_payload;
 	serial_buffer receive_payload;
 	endpoint_request(id, receive_payload, send_payload, 1, 4);
@@ -91,7 +91,7 @@ void Protocol::get(int id, float& value) {
 
 }
 
-void Protocol::get(int id, int& value) {
+void Protocol::get_int(int id, int& value) {
 	serial_buffer send_payload;
 	serial_buffer receive_payload;
 	endpoint_request(id, receive_payload, send_payload, 1, 4);
@@ -99,7 +99,7 @@ void Protocol::get(int id, int& value) {
 
 }
 
-void Protocol::set(int id, float& value) {
+void Protocol::set_float(int id, float& value) {
 	serial_buffer send_payload;
 	serial_buffer receive_payload;
 	serialize(send_payload, value);
@@ -107,7 +107,7 @@ void Protocol::set(int id, float& value) {
 }
 
 
-void Protocol::set(int id, int& value) {
+void Protocol::set_int(int id, int& value) {
 	serial_buffer send_payload;
 	serial_buffer receive_payload;
 	serialize(send_payload, value);
