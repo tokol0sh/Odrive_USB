@@ -4,6 +4,22 @@ typedef std::vector<uint8_t> serial_buffer;
 using nlohmann::json;
 
 
+void populate_from_json(json& j, Endpoint& endpoints) {
+	for (json& obj : j) {
+		std::string name = obj["name"];
+		std::string type = obj["type"];
+		int id = obj["id"];
+		//printf("id: %i\tname: %s\ttype: %s\n", id, name.c_str(), type.c_str());
+
+		endpoints.add_child(name, type, id);
+
+		if (obj.count("members")) {
+			json& members = obj["members"];
+			populate_from_json(members, endpoints[name]);
+		}
+	}
+}
+
 
 int Protocol::endpoint_request(int endpoint_id, serial_buffer& received_payload, std::vector<uint8_t> payload, int ack, int length) {
 	serial_buffer send_buffer;
@@ -43,10 +59,11 @@ int Protocol::endpoint_request(int endpoint_id, serial_buffer& received_payload,
 }
 
 
-void Protocol::get_json_interface(json& j) {
+Endpoint Protocol::get_json_interface() {
 	serial_buffer send_payload;
 	serial_buffer receive_payload;
 	serial_buffer received_json;
+	Endpoint root(0);
 
 	int received_bytes = 0;
 	int total_received = 0;
@@ -62,6 +79,8 @@ void Protocol::get_json_interface(json& j) {
 	} while (received_bytes > 0);
 	j = json::parse(received_json);
 	printf("Received %i bytes!\n", total_received);
+	populate_from_json(j, root);
+	return root;
 }
 
 void Protocol::get_float(int id, float& value) {

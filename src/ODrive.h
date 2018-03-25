@@ -4,6 +4,7 @@
 #include <map>
 #include "libusb-1.0\libusb.h"
 #include <json.hpp>
+#include "endpoint.h"
 
 
 #define VID     0x1209
@@ -11,6 +12,8 @@
 
 typedef std::vector<uint8_t> serial_buffer;
 using nlohmann::json;
+
+
 
 class Protocol {
 public:
@@ -27,12 +30,11 @@ public:
 	}
 
 	int endpoint_request(int endpoint_id, serial_buffer& received_payload, std::vector<uint8_t> payload, int ack, int length);
-	void get_json_interface(json& j);
-	void Protocol::get_float(int id, float& value);
-	void Protocol::set_float(int id, float& value);
+	Endpoint get_json_interface();
+	void get_float(int id, float& value);
+	void set_float(int id, float& value);
 
 private:
-
 	libusb_device_handle * handle;
 	libusb_context* ctx;
 	json j;

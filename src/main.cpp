@@ -9,11 +9,9 @@
 
 using nlohmann::json;
 
-
-
-
 #define ARRAY_SIZE(x) (sizeof(x) / sizeof(*x))
 
+/*
 void populate_from_json(json& j, Endpoint& endpoints) {
 	for (json& obj : j) {
 		std::string name = obj["name"];
@@ -29,9 +27,7 @@ void populate_from_json(json& j, Endpoint& endpoints) {
 		}
 	}
 }
-
-Protocol ODrive;
-
+*/
 int main() {
 	/*
 	libusb_context* ctx;
@@ -42,11 +38,11 @@ int main() {
 	int r = libusb_claim_interface(handle, 1);
 	*/
 	json j;
-	//Protocol ODrive;
-	Endpoint root(0);
-	ODrive.get_json_interface(j);
 
-	populate_from_json(j, root);
+	Protocol ODrive;
+	Endpoint root(0);
+	root = ODrive.get_json_interface();
+
 	Endpoint& motor0 = root["motor0"];
 	Endpoint& motor0_position = motor0["pos_setpoint"];
 	Endpoint& bus_voltage = root["vbus_voltage"];
