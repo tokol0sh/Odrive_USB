@@ -14,7 +14,7 @@ public:
 
 	Endpoint& add_child(const std::string& name, std::string type, int id);
 
-	Endpoint& operator[] (const std::string& name);
+	Endpoint& operator() (const std::string& name);
 
 	bool is_valid() const;
 
@@ -31,9 +31,10 @@ public:
 		set(value);
 	}
 
-	operator float() const;
 
-	//operator int() const;
+	explicit operator float() const;
+
+	explicit operator int() const;
 
 
 

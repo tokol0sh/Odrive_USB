@@ -6,7 +6,7 @@ Endpoint& Endpoint::add_child(const std::string& name, std::string type, int id)
 	return children[name];
 }
 
-Endpoint& Endpoint::operator[] (const std::string& name) {
+Endpoint& Endpoint::operator() (const std::string& name) {
 	return children[name];
 }
 
@@ -78,7 +78,7 @@ Endpoint::operator float() const {
 		}
 	}
 }
-/*
+
 Endpoint::operator int() const {
 	if (!has_children() && is_valid()) {
 		if (type == "uint32") {
@@ -92,4 +92,3 @@ Endpoint::operator int() const {
 		}
 	}
 }
-*/

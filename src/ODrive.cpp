@@ -4,18 +4,18 @@ typedef std::vector<uint8_t> serial_buffer;
 using nlohmann::json;
 
 
-void populate_from_json(json& j, Endpoint& endpoints) {
+static void populate_from_json(json& j, Endpoint& endpoints) {
 	for (json& obj : j) {
 		std::string name = obj["name"];
 		std::string type = obj["type"];
 		int id = obj["id"];
 		//printf("id: %i\tname: %s\ttype: %s\n", id, name.c_str(), type.c_str());
 
-		endpoints.add_child(name, type, id);
+		Endpoint& endpoint = endpoints.add_child(name, type, id);
 
 		if (obj.count("members")) {
 			json& members = obj["members"];
-			populate_from_json(members, endpoints[name]);
+			populate_from_json(members, endpoint);
 		}
 	}
 }
@@ -146,11 +146,12 @@ void Protocol::serialize(serial_buffer& serial_buffer, const float& valuef) {
 		int temp;
 	}u;
 	u.f = valuef;
-	int value = u.temp;
-	serial_buffer.push_back((value >> 0) & 0xFF);
-	serial_buffer.push_back((value >> 8) & 0xFF);
-	serial_buffer.push_back((value >> 16) & 0xFF);
-	serial_buffer.push_back((value >> 24) & 0xFF);
+	serialize(serial_buffer, u.temp);
+	//int value = u.temp;
+	//serial_buffer.push_back((value >> 0) & 0xFF);
+	//serial_buffer.push_back((value >> 8) & 0xFF);
+	//serial_buffer.push_back((value >> 16) & 0xFF);
+	//serial_buffer.push_back((value >> 24) & 0xFF);
 }
 
 void Protocol::serialize(serial_buffer& serial_buffer, const short& value) {
